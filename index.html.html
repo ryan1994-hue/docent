@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>월간 도슨트 · 온라인 전시관</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Serif+KR:wght@300;400;600;900&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1814;
+    --paper:#f4efe6;
+    --paper-deep:#e8e0d2;
+    --accent:#8a3324;
+    --accent-soft:#b5654a;
+    --gold:#a8884c;
+    --muted:#6b6253;
+    --line:#cdc3b0;
+    --card:#fbf8f1;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Noto Serif KR',serif;
+    line-height:1.7;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    background-image:radial-gradient(circle at 50% 50%, rgba(0,0,0,0.015) 1px, transparent 1px);
+    background-size:4px 4px;
+    pointer-events:none;z-index:9999;
+  }
+
+  /* ===== HEADER ===== */
+  header{
+    position:relative;
+    padding:80px 24px 56px;
+    text-align:center;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, var(--paper-deep) 0%, var(--paper) 100%);
+    overflow:hidden;
+  }
+  header::after{
+    content:"";
+    position:absolute;left:50%;bottom:-1px;
+    width:120px;height:3px;transform:translateX(-50%);
+    background:var(--accent);
+  }
+  .kicker{
+    font-family:'Gowun Dodum',sans-serif;
+    letter-spacing:.5em;font-size:.72rem;color:var(--accent);
+    text-transform:uppercase;margin-bottom:22px;padding-left:.5em;
+    animation:fadeUp .8s ease both;
+  }
+  header h1{
+    font-family:'Noto Serif KR',serif;font-weight:900;
+    font-size:clamp(2.4rem,6vw,4.2rem);letter-spacing:-.02em;line-height:1.1;
+    animation:fadeUp .8s ease .1s both;
+  }
+  header h1 .em{color:var(--accent);font-style:normal;}
+  .sub{
+    margin-top:20px;font-family:'Gowun Batang',serif;color:var(--muted);
+    font-size:1rem;max-width:560px;margin-left:auto;margin-right:auto;
+    animation:fadeUp .8s ease .2s both;
+  }
+
+  /* ===== THEME BAR ===== */
+  .theme-bar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(244,239,230,.92);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+    display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:14px 16px;
+  }
+  .theme-bar button{
+    font-family:'Gowun Dodum',sans-serif;font-size:.82rem;
+    border:1px solid var(--line);background:transparent;color:var(--muted);
+    padding:7px 16px;border-radius:999px;cursor:pointer;transition:all .25s ease;
+  }
+  .theme-bar button:hover{border-color:var(--accent-soft);color:var(--accent);}
+  .theme-bar button.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+  /* ===== MONTH HEADING ===== */
+  .month-block{padding:60px 24px 10px;max-width:1180px;margin:0 auto;}
+  .month-heading{display:flex;align-items:baseline;gap:18px;margin-bottom:36px;}
+  .month-heading .num{
+    font-family:'Noto Serif KR',serif;font-weight:900;
+    font-size:clamp(2.2rem,5vw,3.4rem);color:var(--accent);line-height:1;
+  }
+  .month-heading .info h2{font-weight:600;font-size:1.4rem;letter-spacing:-.01em;}
+  .month-heading .info p{font-family:'Gowun Dodum',sans-serif;font-size:.85rem;color:var(--muted);margin-top:3px;}
+  .month-heading .rule{flex:1;height:1px;background:var(--line);align-self:center;}
+
+  /* ===== STATUS / LOADING ===== */
+  .status{
+    max-width:1180px;margin:0 auto;padding:0 24px 20px;
+    font-family:'Gowun Dodum',sans-serif;color:var(--muted);font-size:.9rem;text-align:center;
+  }
+
+  /* ===== GALLERY GRID ===== */
+  .gallery{
+    max-width:1180px;margin:0 auto;padding:0 24px 40px;
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:30px;
+  }
+
+  /* ===== CARD ===== */
+  .card{
+    background:var(--card);border:1px solid var(--line);position:relative;
+    display:flex;flex-direction:column;
+    transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease;
+    cursor:pointer;opacity:0;transform:translateY(24px);
+  }
+  .card.in{opacity:1;transform:translateY(0);}
+  .card:hover{transform:translateY(-6px);box-shadow:0 18px 40px -18px rgba(60,40,20,.4);}
+  .card .frame{padding:14px 14px 0;}
+  .card .cover{
+    aspect-ratio:3/4;
+    background:linear-gradient(135deg,var(--paper-deep),var(--paper));
+    border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
+  }
+  .card .cover img{width:100%;height:100%;object-fit:cover;}
+  .card .cover .spine-title{
+    font-family:'Gowun Batang',serif;font-weight:700;font-size:1.15rem;
+    text-align:center;padding:0 20px;color:var(--ink);
+  }
+  .card .body{padding:20px 22px 24px;display:flex;flex-direction:column;flex:1;}
+  .card .topic-tag{
+    display:inline-block;align-self:flex-start;
+    font-family:'Gowun Dodum',sans-serif;font-size:.66rem;letter-spacing:.15em;
+    color:var(--accent);border:1px solid var(--accent-soft);
+    padding:3px 10px;border-radius:999px;margin-bottom:14px;
+  }
+  .card h3{font-weight:600;font-size:1.3rem;line-height:1.3;letter-spacing:-.01em;}
+  .card .author{font-family:'Gowun Dodum',sans-serif;font-size:.8rem;color:var(--muted);margin-top:5px;}
+  .card .pitch{
+    font-family:'Gowun Batang',serif;font-style:italic;font-size:1.02rem;color:var(--accent);
+    margin:16px 0;padding-left:14px;border-left:3px solid var(--gold);line-height:1.55;
+  }
+  .card .docent{
+    font-size:.92rem;color:#33302a;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .card .footer{
+    margin-top:auto;padding-top:18px;display:flex;align-items:center;justify-content:space-between;
+    border-top:1px dashed var(--line);margin-top:18px;
+  }
+  .card .curator{font-family:'Gowun Dodum',sans-serif;font-size:.78rem;color:var(--muted);}
+  .card .curator b{color:var(--ink);font-weight:400;}
+  .card .more{font-family:'Gowun Dodum',sans-serif;font-size:.74rem;color:var(--accent);}
+
+  /* ===== MODAL ===== */
+  .overlay{
+    position:fixed;inset:0;z-index:200;background:rgba(26,24,20,.55);backdrop-filter:blur(3px);
+    display:none;align-items:center;justify-content:center;padding:24px;
+  }
+  .overlay.open{display:flex;animation:fade .3s ease;}
+  .modal{
+    background:var(--card);max-width:680px;width:100%;max-height:88vh;overflow-y:auto;
+    border:1px solid var(--line);position:relative;padding:46px 44px 40px;
+    animation:pop .35s cubic-bezier(.2,.8,.2,1);
+  }
+  .modal .close{
+    position:absolute;top:18px;right:20px;background:none;border:none;
+    font-size:1.6rem;color:var(--muted);cursor:pointer;line-height:1;
+  }
+  .modal .topic-tag{
+    display:inline-block;font-family:'Gowun Dodum',sans-serif;font-size:.68rem;letter-spacing:.15em;
+    color:var(--accent);border:1px solid var(--accent-soft);padding:3px 10px;border-radius:999px;margin-bottom:18px;
+  }
+  .modal h2{font-weight:900;font-size:2rem;line-height:1.25;}
+  .modal .m-author{font-family:'Gowun Dodum',sans-serif;color:var(--muted);font-size:.9rem;margin-top:8px;margin-bottom:28px;}
+  .modal .label{
+    font-family:'Gowun Dodum',sans-serif;font-size:.72rem;letter-spacing:.2em;color:var(--gold);
+    text-transform:uppercase;margin:26px 0 10px;
+  }
+  .modal .m-pitch{font-family:'Gowun Batang',serif;font-style:italic;font-size:1.35rem;color:var(--accent);line-height:1.5;}
+  .modal .m-text{font-size:1.02rem;color:#2e2b25;white-space:pre-wrap;}
+  .modal .m-quote{
+    background:var(--paper);border-left:4px solid var(--accent);padding:20px 24px;
+    font-family:'Gowun Batang',serif;font-size:1.08rem;line-height:1.8;
+  }
+  .modal .m-quote .why{
+    display:block;margin-top:14px;font-style:normal;
+    font-family:'Noto Serif KR',serif;font-size:.92rem;color:var(--muted);
+  }
+  .modal .m-cover{width:140px;float:right;margin:0 0 16px 20px;border:1px solid var(--line);}
+  .modal .m-curator{
+    margin-top:34px;padding-top:18px;border-top:1px solid var(--line);clear:both;
+    font-family:'Gowun Dodum',sans-serif;font-size:.85rem;color:var(--muted);
+  }
+
+  /* ===== FOOTER ===== */
+  footer{
+    text-align:center;padding:56px 24px 70px;border-top:1px solid var(--line);
+    background:var(--paper-deep);font-family:'Gowun Dodum',sans-serif;color:var(--muted);font-size:.82rem;
+  }
+  footer .mark{font-family:'Noto Serif KR',serif;font-weight:900;font-size:1.1rem;color:var(--ink);margin-bottom:8px;letter-spacing:.04em;}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes fade{from{opacity:0;}to{opacity:1;}}
+  @keyframes pop{from{opacity:0;transform:translateY(20px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+
+  @media(max-width:520px){
+    .modal{padding:40px 26px 32px;}
+    .gallery{grid-template-columns:1fr;}
+    .modal .m-cover{float:none;display:block;margin:0 auto 20px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker">Monthly Docent · 학급 독서 전시관</div>
+  <h1>월간 <span class="em">도슨트</span> 전시관</h1>
+  <p class="sub">한 권의 책을 골라 직접 해설가가 되어 소개합니다. 우리 반 학생들이 큐레이팅한 이달의 책을 만나 보세요.</p>
+</header>
+
+<nav class="theme-bar" id="themeBar"></nav>
+
+<section class="month-block">
+  <div class="month-heading">
+    <span class="num"></span>
+    <div class="info"><h2></h2><p></p></div>
+    <span class="rule"></span>
+  </div>
+</section>
+
+<div class="status" id="status">전시 데이터를 불러오는 중…</div>
+<div class="gallery" id="gallery"></div>
+
+<footer>
+  <div class="mark">월간 도슨트</div>
+  <div>학생들이 제출한 도슨트가 이곳에 전시됩니다. 페이지를 새로고침하면 최신 응답이 반영됩니다.</div>
+</footer>
+
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+
+<script>
+/* =====================================================================
+   ★ 설정: 여기에 구글 시트 'CSV 게시 주소'를 붙여넣으세요.
+   파일 → 공유 → 웹에 게시 → Form_Responses 시트 / .csv 선택 → 게시
+   ===================================================================== */
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRTeciBnTnVtX6KzkJJqe3F6H6E8-G9QNKHwdBhrjPsZ_c-jQFI2lVjJUqEInXHqzuezQQ_Cz-iimcx/pub?gid=378497337&single=true&output=csv";
+
+/* 시트 열 이름 → 코드에서 쓰는 항목 매핑 (선생님 시트 구조에 맞춤) */
+const COL = {
+  timestamp: "타임스탬프",
+  name:      "1. 이름",
+  topic:     "도슨트 주제",
+  title:     "2. 책 제목",
+  cover:     "2-1. 책 표지 이미지",
+  author:    "3. 저자 / 출판사",
+  pitch:     "4. 한 줄 추천평(30자 내외)",
+  docent:    "5. 감상평(추천하는 이유)",
+  quote:     "6. 인상 깊은 구절",
+  why:       "6-1. 그 구절을 고른 이유"
+};
+
+let works = [];
+let topics = [];
+
+/* ===== CSV 파서 (쉼표·줄바꿈·따옴표 처리) ===== */
+function parseCSV(text){
+  const rows=[];let row=[];let cur="";let q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; }
+      else cur+=c;
+    }else{
+      if(c==='"')q=true;
+      else if(c===',' ){row.push(cur);cur="";}
+      else if(c==='\n'){row.push(cur);rows.push(row);row=[];cur="";}
+      else if(c==='\r'){}
+      else cur+=c;
+    }
+  }
+  if(cur!==""||row.length){row.push(cur);rows.push(row);}
+  return rows;
+}
+
+/* ===== 구글 드라이브 이미지 링크 → 직접 표시 가능한 형태로 변환 ===== */
+function fixImage(url){
+  if(!url)return "";
+  const m=url.match(/[-\w]{25,}/);  // 드라이브 파일 ID 추출
+  if(m && url.includes("drive.google")) return "https://drive.google.com/thumbnail?id="+m[0]+"&sz=w400";
+  return url;
+}
+
+/* ===== 데이터 불러오기 ===== */
+async function load(){
+  const status=document.getElementById('status');
+  if(CSV_URL.indexOf("http")!==0){
+    status.innerHTML="아직 CSV 주소가 설정되지 않았습니다. 코드 상단의 <b>CSV_URL</b> 값을 구글 시트 게시 주소로 바꿔 주세요.";
+    return;
+  }
+  try{
+    const res=await fetch(CSV_URL);
+    const text=await res.text();
+    const rows=parseCSV(text);
+    if(rows.length<2){status.textContent="아직 제출된 도슨트가 없습니다. 첫 응답을 기다리고 있어요.";return;}
+    const head=rows[0].map(h=>h.trim());
+    const idx={};
+    for(const key in COL){ idx[key]=head.indexOf(COL[key]); }
+
+    works=rows.slice(1).filter(r=>r.length>1 && (r[idx.title]||"").trim()).map(r=>({
+      timestamp:r[idx.timestamp]||"",
+      name:(r[idx.name]||"").trim()||"익명",
+      topic:(r[idx.topic]||"").trim()||"기타",
+      title:(r[idx.title]||"").trim(),
+      cover:fixImage((r[idx.cover]||"").trim()),
+      author:(r[idx.author]||"").trim(),
+      pitch:(r[idx.pitch]||"").trim(),
+      docent:(r[idx.docent]||"").trim(),
+      quote:(r[idx.quote]||"").trim(),
+      why:(r[idx.why]||"").trim()
+    }));
+
+    if(!works.length){status.textContent="아직 제출된 도슨트가 없습니다. 첫 응답을 기다리고 있어요.";return;}
+
+    topics=[...new Set(works.map(w=>w.topic))];
+    status.style.display="none";
+    buildTabs();
+    render("all");
+  }catch(e){
+    status.innerHTML="데이터를 불러오지 못했습니다. CSV 주소가 '웹에 게시'로 공개되어 있는지 확인해 주세요.<br><small>"+e+"</small>";
+  }
+}
+
+/* ===== 주제 탭 ===== */
+function buildTabs(){
+  const bar=document.getElementById('themeBar');
+  bar.innerHTML="";
+  const all=document.createElement('button');
+  all.className="active";all.dataset.filter="all";all.textContent="전체 보기";
+  bar.appendChild(all);
+  topics.forEach(t=>{
+    const b=document.createElement('button');
+    b.dataset.filter=t;b.textContent=t;
+    bar.appendChild(b);
+  });
+  bar.addEventListener('click',e=>{
+    if(e.target.tagName!=="BUTTON")return;
+    [...bar.children].forEach(b=>b.classList.remove('active'));
+    e.target.classList.add('active');
+    render(e.target.dataset.filter);
+  });
+}
+
+/* ===== 렌더 ===== */
+const gallery=document.getElementById('gallery');
+const monthBlock=document.querySelector('.month-block');
+function render(filter){
+  gallery.innerHTML="";
+  const list= filter==="all" ? works : works.filter(w=>w.topic===filter);
+  const headTopic= filter==="all" ? (topics[0]||"") : filter;
+  monthBlock.querySelector('.num').textContent="";
+  monthBlock.querySelector('.info h2').textContent= filter==="all" ? "전체 전시" : headTopic;
+  monthBlock.querySelector('.info p').textContent= list.length+"편의 도슨트 해설";
+
+  list.forEach((w,i)=>{
+    const card=document.createElement('article');
+    card.className="card";
+    card.style.transitionDelay=(i*0.05)+"s";
+    const coverHTML = w.cover
+      ? `<img src="${w.cover}" alt="${w.title} 표지" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'spine-title',textContent:'${w.title.replace(/'/g,"")}'}))">`
+      : `<span class="spine-title">${w.title}</span>`;
+    card.innerHTML=`
+      <div class="frame"><div class="cover">${coverHTML}</div></div>
+      <div class="body">
+        <span class="topic-tag">${w.topic}</span>
+        <h3>${w.title}</h3>
+        <div class="author">${w.author}</div>
+        ${w.pitch?`<div class="pitch">"${w.pitch}"</div>`:""}
+        <div class="docent">${w.docent}</div>
+        <div class="footer">
+          <span class="curator">도슨트 · <b>${w.name}</b></span>
+          <span class="more">해설 보기 →</span>
+        </div>
+      </div>`;
+    card.addEventListener('click',()=>openModal(w));
+    gallery.appendChild(card);
+  });
+
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('.card').forEach(c=>{
+      const obs=new IntersectionObserver(en=>{en.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');obs.unobserve(e.target);}});},{threshold:.12});
+      obs.observe(c);
+    });
+  });
+}
+
+/* ===== 모달 ===== */
+const overlay=document.getElementById('overlay');
+const modal=document.getElementById('modal');
+function openModal(w){
+  const cover = w.cover ? `<img class="m-cover" src="${w.cover}" alt="${w.title} 표지" onerror="this.style.display='none'">` : "";
+  modal.innerHTML=`
+    <button class="close" aria-label="닫기">&times;</button>
+    <span class="topic-tag">${w.topic}</span>
+    <h2>${w.title}</h2>
+    <div class="m-author">${w.author}</div>
+    ${cover}
+    ${w.pitch?`<div class="m-pitch">"${w.pitch}"</div>`:""}
+    <div class="label">도슨트의 한마디</div>
+    <p class="m-text">${w.docent}</p>
+    ${w.quote?`<div class="label">인상 깊은 구절</div><div class="m-quote">"${w.quote}"${w.why?`<span class="why">— ${w.why}</span>`:""}</div>`:""}
+    <div class="m-curator">이 작품을 안내한 도슨트 · ${w.name}</div>`;
+  modal.querySelector('.close').addEventListener('click',closeModal);
+  overlay.classList.add('open');
+  document.body.style.overflow="hidden";
+}
+function closeModal(){overlay.classList.remove('open');document.body.style.overflow="";}
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==="Escape")closeModal();});
+
+load();
+</script>
+</body>
+</html>
